@@ -1,4 +1,5 @@
 "use strict";
+const HTTP_201_CREATED = 201;
 const express = require("express");
 const db = require("../db");
 const { NotFoundError } = require("../expressError");
@@ -38,12 +39,12 @@ router.get("/:id", async function (req, res, next) {
     throw new NotFoundError("Invoice not found")
   };
 
-  const cResult = await db.query(`SELECT c.code, c.name, c.description
-  FROM invoices as i
-  JOIN companies as c
-  ON i.comp_code=c.code
-  WHERE i.id=$1`, [id]);
-
+  const cResult = await db.query(`
+            SELECT c.code, c.name, c.description
+            FROM invoices as i
+            JOIN companies as c
+            ON i.comp_code=c.code
+            WHERE i.id=$1`, [id]);
   invoice.company = cResult.rows[0];
 
   return res.json({ invoice });
@@ -62,10 +63,9 @@ router.post("/", async function (req, res, next) {
         INSERT INTO invoices (comp_code, amt)
         VALUES ($1, $2)
         RETURNING id, comp_code, amt, paid, add_date, paid_date`, [comp_code, amt]);
-
   const invoice = results.rows[0];
 
-  return res.json({ invoice });
+  return res.status(HTTP_201_CREATED).json({ invoice });
 })
 
 /** PUT /invoices/<id> updates an invoice amount, accepts JSON like
@@ -76,7 +76,7 @@ router.post("/", async function (req, res, next) {
 */
 router.put("/:id", async function (req, res, next) {
 
-  const id = req.params.id;
+  const { id } = req.params;
   const { amt } = req.body;
 
   const results = await db.query(`

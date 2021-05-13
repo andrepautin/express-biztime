@@ -1,4 +1,5 @@
 "use strict";
+const HTTP_201_CREATED = 201;
 const express = require("express");
 const db = require("../db");
 const { NotFoundError } = require("../expressError");
@@ -64,7 +65,7 @@ router.post("/", async function (req, res, next) {
         RETURNING code, name, description`, [code, name, description]);
   const company = results.rows[0];
 
-  return res.json({ company });
+  return res.status(HTTP_201_CREATED).json({ company });
 });
 
 /** PUT "/companies/<code> edits an existing company 
@@ -112,7 +113,7 @@ router.delete("/:code", async function (req, res, next) {
   if (!company) {
     throw new NotFoundError("Company not found");
   };
-  
+
   return res.json({ status: "deleted" });
 });
 
